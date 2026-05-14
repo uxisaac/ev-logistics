@@ -120,6 +120,23 @@ function parseDetail(detail: string) {
 }
 
 
+const VEHICLE_IMAGES: Record<string, string> = {
+  'Ford E-Transit': '/ford-e-transit.webp',
+  'BYD eBus-12': '/byd-ebus-12.webp',
+}
+
+function VehicleThumb({ model }: { model: string }) {
+  const src = VEHICLE_IMAGES[model]
+  return (
+    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-muted overflow-hidden">
+      {src
+        ? <img src={src} alt={model} className="h-full w-full object-contain" />
+        : <Bus className="h-7 w-7 text-muted-foreground" />
+      }
+    </div>
+  )
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{children}</p>
 }
@@ -222,9 +239,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
             <div className="shrink-0 border-b px-6 py-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-muted">
-                    <Bus className="h-7 w-7 text-muted-foreground" />
-                  </div>
+                  <VehicleThumb model={alert.model} />
                   <div className="min-w-0">
                     <h2 className="truncate text-2xl font-semibold tracking-tight">{alert.vehicleId}</h2>
                     <p className="mt-0.5 font-mono text-xs uppercase text-muted-foreground">{alert.model}</p>
@@ -454,14 +469,12 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                           </div>
                         </div>
                         <div className="flex items-center gap-3 rounded-xl border bg-card p-4">
-                          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-muted">
-                            <Bus className="h-7 w-7 text-muted-foreground" />
-                          </div>
+                          <VehicleThumb model={alert.model} />
                           <div className="min-w-0 flex-1">
                             <p className="font-mono text-xs uppercase text-muted-foreground">New Assigned Vehicle</p>
                             <div className="flex items-baseline gap-1.5">
                               <span className="font-mono text-xl uppercase text-foreground">VH-0033</span>
-                              <span className="font-mono text-xs uppercase text-muted-foreground">Ford E-Transit</span>
+                              <span className="font-mono text-xs uppercase text-muted-foreground">{alert.model}</span>
                             </div>
                             <p className="font-mono text-xs uppercase text-foreground">78% Charged</p>
                           </div>
