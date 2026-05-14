@@ -9,8 +9,9 @@ import {
   type ColumnDef,
   type SortingState,
 } from '@tanstack/react-table'
-import { Bus, BatteryCharging, Moon, Skull, ArrowUp, ArrowDown, ArrowUpDown, MessageSquare, Cloud, Wind, Droplets } from 'lucide-react'
+import { Bus, BatteryCharging, Moon, Skull, ArrowUp, ArrowDown, ArrowUpDown, MessageSquare, Cloud, Wind, Droplets, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import { StatCard } from '@/components/stat-card'
 import { NavBar, type NavItem } from '@/components/nav-bar'
 import { AlertDrawer } from '@/components/alert-drawer'
@@ -81,17 +82,10 @@ function BatteryBar({ pct }: { pct: number }) {
 }
 
 function SeverityBadge({ severity }: { severity: Alert['severity'] }) {
-  return (
-    <span
-      className={cn(
-        'flex flex-row items-center justify-center gap-5 h-7 w-24 shrink-0 rounded-full font-mono text-xs leading-4 tracking-[0.06em] uppercase',
-        severity === 'critical'
-          ? 'bg-destructive/16 text-destructive'
-          : 'bg-warning/16 text-warning',
-      )}
-    >
-      {severity === 'critical' ? 'Critical' : 'Warning'}
-    </span>
+  return severity === 'critical' ? (
+    <Badge className="bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">Critical</Badge>
+  ) : (
+    <Badge className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300">Warning</Badge>
   )
 }
 
@@ -117,6 +111,7 @@ export default function Page() {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'batteryPct', desc: false }])
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null)
   const [drawerTab, setDrawerTab] = useState<'overview' | 'location' | 'chat'>('overview')
+  const [confirmedAlerts, setConfirmedAlerts] = useState<Set<string>>(new Set())
 
   const columns: ColumnDef<Alert>[] = [
     {
@@ -142,12 +137,21 @@ export default function Page() {
     {
       accessorKey: 'alertTitle',
       header: 'Alert',
-      cell: ({ row }) => (
-        <div className="flex flex-col gap-1">
-          <div className="text-base font-medium">{row.original.alertTitle}</div>
-          <div className="font-mono text-xs text-muted-foreground">{row.original.alertDetail}</div>
-        </div>
-      ),
+      cell: ({ row }) =>
+        confirmedAlerts.has(row.original.id) ? (
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-base font-medium text-green-700 dark:text-green-400">
+              <CheckCircle className="h-4 w-4 shrink-0" />
+              Driver confirmed · Heading to charger after dropoff
+            </div>
+            <div className="font-mono text-xs text-muted-foreground">{row.original.alertDetail}</div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            <div className="text-base font-medium">{row.original.alertTitle}</div>
+            <div className="font-mono text-xs text-muted-foreground">{row.original.alertDetail}</div>
+          </div>
+        ),
     },
     {
       accessorKey: 'unreadMessages',
@@ -201,7 +205,12 @@ export default function Page() {
         onSelectVehicle={(id) => setSelectedAlert(ALERTS.find(a => a.vehicleId === id) ?? null)}
       />
 
-      <AlertDrawer alert={selectedAlert} onClose={() => setSelectedAlert(null)} initialTab={drawerTab} />
+      <AlertDrawer
+        alert={selectedAlert}
+        onClose={() => setSelectedAlert(null)}
+        initialTab={drawerTab}
+        onAssigned={(id) => setConfirmedAlerts(prev => new Set(prev).add(id))}
+      />
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto px-4 py-4">

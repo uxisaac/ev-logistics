@@ -33,6 +33,7 @@ interface AlertDrawerProps {
   alert: Alert | null
   onClose: () => void
   initialTab?: 'overview' | 'location' | 'chat'
+  onAssigned?: (alertId: string) => void
 }
 
 const SHIFT_HOURS = ['5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM']
@@ -149,7 +150,7 @@ function InfoCard({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDrawerProps) {
+export function AlertDrawer({ alert, onClose, initialTab = 'overview', onAssigned }: AlertDrawerProps) {
   const open = alert !== null
   const [assignState, setAssignState] = useState<'idle' | 'loading' | 'confirmed'>('idle')
   const [activeTab, setActiveTab] = useState<'overview' | 'location' | 'chat'>('overview')
@@ -192,6 +193,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
       }])
       setAssignState('confirmed')
       setActiveTab('chat')
+      if (alert) onAssigned?.(alert.id)
       toast.success('Vehicle reassigned', {
         description: `${alert?.vehicleId} reassigned to Depot North Lot A · Message sent to driver`,
       })
@@ -379,7 +381,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                           <p className="text-sm font-medium">Sepulveda & Venice</p>
                           <p className="font-mono text-xs uppercase text-muted-foreground">Culver City, CA · Updated just now</p>
                         </div>
-                        <Badge variant={alert.severity === 'critical' ? 'destructive' : 'warning'}>
+                        <Badge className={alert.severity === 'critical' ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300'}>
                           {alert.severity}
                         </Badge>
                       </div>
@@ -399,7 +401,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                       <p className="font-mono text-xs text-muted-foreground">(310) 555-0142</p>
                     </div>
                   </div>
-                  <Badge variant="success">In Vehicle</Badge>
+                  <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">In Vehicle</Badge>
                 </InfoCard>
 
                 {/* Metric cards */}
@@ -429,7 +431,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                   <div className="flex flex-col gap-2 rounded-xl border bg-muted/30 p-4">
                     <SectionLabel>Est. Done</SectionLabel>
                     <p className="font-mono text-2xl uppercase text-foreground">2:45 PM</p>
-                    <Badge variant="success">On Schedule</Badge>
+                    <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">On Schedule</Badge>
                   </div>
                 </div>
 
@@ -478,7 +480,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                             </div>
                             <p className="font-mono text-xs uppercase text-foreground">78% Charged</p>
                           </div>
-                          <Badge variant="success">Available</Badge>
+                          <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">Available</Badge>
                         </div>
                         <button
                           onClick={handleAssign}
@@ -547,7 +549,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                       { label: 'Driver', value: alert.driver.split(' ')[0], status: 'Confirmed' },
                     ].map(({ label, value, status }) => (
                       <div key={label} className="flex flex-col gap-2 rounded-xl border bg-muted/30 px-4 py-3">
-                        <Badge variant="success">{status}</Badge>
+                        <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">{status}</Badge>
                         <div>
                           <p className="font-mono text-sm uppercase font-medium">{value}</p>
                           <p className="font-mono text-xs uppercase text-muted-foreground">{label}</p>
@@ -568,7 +570,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                           <p className="font-mono text-base uppercase">VH-00033</p>
                           <p className="font-mono text-xs uppercase text-muted-foreground">Ford E-Transit · 78% Battery · 0.4mi Away</p>
                         </div>
-                        <Badge variant="success">Available Now</Badge>
+                        <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">Available Now</Badge>
                       </InfoCard>
                       <button className="mt-1 w-full rounded-lg border py-2.5 font-mono text-xs uppercase tracking-widest text-foreground transition-colors hover:bg-muted">
                         Assign VH-0033
