@@ -111,6 +111,7 @@ const COL_WIDTHS: Record<string, string> = {
 }
 
 export default function Page() {
+  "use no memo"
   const [activeNav, setActiveNav] = useState<NavItem>('DASHBOARD')
   const [time, setTime] = useState<Date | null>(null)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'batteryPct', desc: false }])
@@ -182,6 +183,7 @@ export default function Page() {
     return () => clearInterval(timer)
   }, [])
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: ALERTS,
     columns,
