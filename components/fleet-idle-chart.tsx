@@ -85,7 +85,7 @@ export function FleetIdleChart() {
                 fontSize: 11,
               }}
               itemStyle={{ color: cardColor }}
-              formatter={(v: number) => [`${v}%`, 'Fleet avg charge']}
+              formatter={(v) => [`${v}%`, 'Fleet avg charge']}
               cursor={{ stroke: borderColor, strokeWidth: 1 }}
             />
             <Area

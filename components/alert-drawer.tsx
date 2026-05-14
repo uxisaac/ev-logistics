@@ -635,7 +635,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview' }: AlertDr
                             fontSize: 11,
                           }}
                           itemStyle={{ color: cardColor }}
-                          formatter={(v: number) => [`${v} min`, 'Idle']}
+                          formatter={(v) => [`${v} min`, 'Idle']}
                           cursor={{ stroke: borderColor, strokeWidth: 1 }}
                         />
                         <Line
