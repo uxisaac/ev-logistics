@@ -1,19 +1,327 @@
-import { Button } from "@/components/ui/button"
+'use client'
+
+import { useState, useEffect } from 'react'
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+} from '@tanstack/react-table'
+import { Bus, BatteryCharging, Moon, Skull, ArrowUp, ArrowDown, ArrowUpDown, MessageSquare, Cloud, Wind, Droplets } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { StatCard } from '@/components/stat-card'
+import { NavBar, type NavItem } from '@/components/nav-bar'
+import { AlertDrawer } from '@/components/alert-drawer'
+import { DriverAvatar } from '@/components/driver-avatar'
+import { FleetIdleChart } from '@/components/fleet-idle-chart'
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table'
+
+interface Alert {
+  id: string
+  vehicleId: string
+  model: string
+  driver: string
+  alertTitle: string
+  alertDetail: string
+  riskLabel: string
+  batteryPct: number
+  severity: 'critical' | 'warning'
+  unreadMessages: number
+}
+
+const ALERTS: Alert[] = [
+  { id: '1', vehicleId: 'VH-0041', model: 'Ford E-Transit', driver: 'M. Torres', alertTitle: 'Needs charging after route end', alertDetail: 'EST. RANGE 12 MI · ROUTE HAS 28 MI REMAINING', riskLabel: '+45MIN RISK', batteryPct: 14, severity: 'critical', unreadMessages: 3 },
+  { id: '2', vehicleId: 'VH-0089', model: 'BYD eBus-12', driver: 'S. Kim', alertTitle: 'Needs charging after route end', alertDetail: 'EST. RANGE 8 MI · ROUTE HAS 22 MI REMAINING', riskLabel: '+30MIN RISK', batteryPct: 9, severity: 'critical', unreadMessages: 0 },
+  { id: '3', vehicleId: 'VH-0023', model: 'Mercedes eSprinter', driver: 'R. Patel', alertTitle: 'Charging session failed', alertDetail: 'STATION CH-04 · LAST ATTEMPT 14 MIN AGO', riskLabel: 'DEPARTING IN 2H', batteryPct: 31, severity: 'warning', unreadMessages: 7 },
+  { id: '4', vehicleId: 'VH-0112', model: 'Ford E-Transit', driver: 'L. Chen', alertTitle: 'Needs charging after route end', alertDetail: 'EST. RANGE 18 MI · ROUTE HAS 31 MI REMAINING', riskLabel: '+60MIN RISK', batteryPct: 17, severity: 'critical', unreadMessages: 0 },
+  { id: '5', vehicleId: 'VH-0067', model: 'Rivian EDV', driver: 'A. Okafor', alertTitle: 'Telematics signal lost', alertDetail: 'LAST SEEN 47 MIN AGO · ZONE 3 EAST', riskLabel: 'UNTRACKED', batteryPct: 62, severity: 'warning', unreadMessages: 0 },
+  { id: '6', vehicleId: 'VH-0055', model: 'BYD eBus-12', driver: 'J. Martinez', alertTitle: 'Needs charging after route end', alertDetail: 'EST. RANGE 6 MI · ROUTE HAS 19 MI REMAINING', riskLabel: '+20MIN RISK', batteryPct: 7, severity: 'critical', unreadMessages: 2 },
+  { id: '7', vehicleId: 'VH-0098', model: 'Mercedes eSprinter', driver: 'T. Williams', alertTitle: 'Driver check-in overdue', alertDetail: 'EXPECTED AT 05:45 AM · LAST PING 52 MIN AGO', riskLabel: '+45MIN LATE', batteryPct: 78, severity: 'warning', unreadMessages: 0 },
+  { id: '8', vehicleId: 'VH-0034', model: 'Rivian EDV', driver: 'P. Johnson', alertTitle: 'Needs charging after route end', alertDetail: 'EST. RANGE 21 MI · ROUTE HAS 35 MI REMAINING', riskLabel: '+55MIN RISK', batteryPct: 19, severity: 'critical', unreadMessages: 0 },
+  { id: '9', vehicleId: 'VH-0076', model: 'Ford E-Transit', driver: 'D. Nguyen', alertTitle: 'Charging session failed', alertDetail: 'STATION CH-11 · LAST ATTEMPT 28 MIN AGO', riskLabel: 'DEPARTING IN 3H', batteryPct: 24, severity: 'warning', unreadMessages: 5 },
+]
+
+function getOrdinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
+
+function formatTime(date: Date): string {
+  const h = date.getHours()
+  const m = date.getMinutes().toString().padStart(2, '0')
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  return `${hour}:${m} ${ampm} PST ${DAYS[date.getDay()]} ${MONTHS[date.getMonth()]} ${getOrdinal(date.getDate())}, ${date.getFullYear()}`
+}
+
+function BatteryBar({ pct }: { pct: number }) {
+  const color = pct < 15 ? 'bg-destructive' : pct < 30 ? 'bg-warning' : 'bg-foreground'
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="h-1 w-28 overflow-hidden rounded-full bg-muted">
+        <div className={cn('h-full rounded-full', color)} style={{ width: `${pct}%` }} />
+      </div>
+      <span className={cn('font-mono text-xs tabular-nums', pct < 15 ? 'text-destructive' : 'text-muted-foreground')}>
+        {pct}%
+      </span>
+    </div>
+  )
+}
+
+function SeverityBadge({ severity }: { severity: Alert['severity'] }) {
+  return (
+    <span
+      className={cn(
+        'flex flex-row items-center justify-center gap-5 h-7 w-24 shrink-0 rounded-full font-mono text-xs leading-4 tracking-[0.06em] uppercase',
+        severity === 'critical'
+          ? 'bg-destructive/16 text-destructive'
+          : 'bg-warning/16 text-warning',
+      )}
+    >
+      {severity === 'critical' ? 'Critical' : 'Warning'}
+    </span>
+  )
+}
+
+function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
+  if (sorted === 'asc') return <ArrowUp className="h-3 w-3" />
+  if (sorted === 'desc') return <ArrowDown className="h-3 w-3" />
+  return <ArrowUpDown className="h-3 w-3 opacity-30" />
+}
+
+const COL_WIDTHS: Record<string, string> = {
+  vehicleId: 'w-[150px]',
+  driver: 'w-[110px]',
+  alertTitle: '',
+  unreadMessages: 'w-[130px]',
+  batteryPct: 'w-[180px]',
+  severity: 'w-[90px]',
+}
 
 export default function Page() {
-  return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
+  const [activeNav, setActiveNav] = useState<NavItem>('DASHBOARD')
+  const [time, setTime] = useState<Date | null>(null)
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'batteryPct', desc: false }])
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null)
+  const [drawerTab, setDrawerTab] = useState<'overview' | 'location' | 'chat'>('overview')
+
+  const columns: ColumnDef<Alert>[] = [
+    {
+      accessorKey: 'vehicleId',
+      header: 'Vehicle',
+      cell: ({ row }) => (
         <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
+          <div className="font-semibold">{row.original.vehicleId}</div>
+          <div className="text-sm text-muted-foreground">{row.original.model}</div>
         </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
+      ),
+    },
+    {
+      accessorKey: 'driver',
+      header: 'Driver',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <DriverAvatar name={row.original.driver} />
+          <span className="text-sm">{row.original.driver}</span>
         </div>
-      </div>
+      ),
+    },
+    {
+      accessorKey: 'alertTitle',
+      header: 'Alert',
+      cell: ({ row }) => (
+        <div className="flex flex-col gap-1">
+          <div className="text-base font-medium">{row.original.alertTitle}</div>
+          <div className="font-mono text-xs text-muted-foreground">{row.original.alertDetail}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'unreadMessages',
+      header: 'Messages',
+      cell: ({ row }) =>
+        row.original.unreadMessages > 0 ? (
+          <span
+            onClick={(e) => { e.stopPropagation(); setDrawerTab('chat'); setSelectedAlert(row.original) }}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 font-mono text-xs text-accent-foreground hover:opacity-80 transition-opacity"
+          >
+            <MessageSquare className="h-3 w-3" />
+            {row.original.unreadMessages}
+          </span>
+        ) : (
+          <span className="font-mono text-xs text-muted-foreground">—</span>
+        ),
+    },
+    {
+      accessorKey: 'batteryPct',
+      header: 'Battery',
+      cell: ({ row }) => <BatteryBar pct={row.original.batteryPct} />,
+    },
+    {
+      accessorKey: 'severity',
+      header: 'Status',
+      cell: ({ row }) => <SeverityBadge severity={row.original.severity} />,
+    },
+  ]
+
+  useEffect(() => {
+    setTime(new Date())
+    const timer = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const table = useReactTable({
+    data: ALERTS,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background pt-16">
+      <NavBar
+        activeNav={activeNav}
+        onNavChange={setActiveNav}
+        onSelectVehicle={(id) => setSelectedAlert(ALERTS.find(a => a.vehicleId === id) ?? null)}
+      />
+
+      <AlertDrawer alert={selectedAlert} onClose={() => setSelectedAlert(null)} initialTab={drawerTab} />
+
+      {/* Content */}
+      <main className="flex-1 overflow-y-auto px-4 py-4">
+        {/* Header */}
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2.5">
+            <h1
+              className="text-2xl tracking-[0.01em] leading-[1.2]"
+              suppressHydrationWarning
+            >
+              {time ? formatTime(time) : ' '}
+            </h1>
+            <p className="font-mono text-xs uppercase tracking-[0.06em] opacity-60 text-foreground">
+              DEPOT: WEST LA 01 · 142 VEHICLES
+            </p>
+          </div>
+
+          {/* Weather widget */}
+          <div className="flex shrink-0 items-center gap-4 rounded-2xl border bg-card px-5 py-3">
+            <div className="flex items-center gap-2">
+              <Cloud className="h-5 w-5 text-muted-foreground" />
+              <span className="text-2xl font-light">72°</span>
+            </div>
+            <div className="w-px self-stretch bg-border" />
+            <div className="flex flex-col gap-1">
+              <p className="font-mono text-xs uppercase text-muted-foreground">Partly Cloudy</p>
+              <p className="font-mono text-xs uppercase text-muted-foreground">West Los Angeles</p>
+            </div>
+            <div className="w-px self-stretch bg-border" />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 font-mono text-xs uppercase text-muted-foreground">
+                <Wind className="h-3 w-3" /> 8 mph
+              </div>
+              <div className="flex items-center gap-1.5 font-mono text-xs uppercase text-muted-foreground">
+                <Droplets className="h-3 w-3" /> 68%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stat cards */}
+        <div className="mb-4 grid grid-cols-4 gap-4">
+          <StatCard
+            label="Total Vehicles"
+            value={142}
+            note="UNCHANGED FROM YESTERDAY"
+            icon={<Bus className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Charging Now"
+            value={23}
+            note="-5 SCHEDULED SOON"
+            icon={<BatteryCharging className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Idle"
+            value={5}
+            note="↓ 6 VS. YESTERDAY THIS TIME"
+            icon={<Moon className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Needs Attention"
+            value={4}
+            note="+4 VS YESTERDAY AVERAGE"
+            icon={<Skull className="h-5 w-5" />}
+            critical
+          />
+        </div>
+
+        {/* Fleet idle chart */}
+        <div className="mb-4">
+          <FleetIdleChart />
+        </div>
+
+        {/* Alerts table */}
+        <div className="overflow-x-auto">
+          <div className="rounded-3xl border bg-card overflow-hidden min-w-265">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="border-b">
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={cn('px-6 py-4', COL_WIDTHS[header.id] ?? '')}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <button
+                            onClick={header.column.getToggleSortingHandler()}
+                            className="flex items-center gap-1 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            <SortIcon sorted={header.column.getIsSorted()} />
+                          </button>
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    onClick={() => { setDrawerTab('overview'); setSelectedAlert(row.original) }}
+                    className="cursor-pointer border-b last:border-b-0"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={cn('px-6 py-4', COL_WIDTHS[cell.column.id] ?? '')}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

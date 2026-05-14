@@ -2,11 +2,30 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@font-face {
+  font-family: 'UncutSans';
+  src: url('/fonts/UncutSans-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NectoMono';
+  src: url('/fonts/NectoMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
+    --font-heading: 'NectoMono', monospace;
+    --font-sans: 'UncutSans', sans-serif;
+    --font-mono: 'NectoMono', monospace;
+    --font-serif: Georgia, serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -23,7 +42,12 @@
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
     --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -62,7 +86,12 @@
     --muted-foreground: oklch(0.552 0.016 285.938);
     --accent: oklch(0.967 0.001 286.375);
     --accent-foreground: oklch(0.21 0.006 285.885);
+    --success: oklch(0.9234 0.031 137.82);
+    --success-foreground: oklch(0.4564 0.126 143.74);
+    --warning: oklch(0.702 0.179 54.386);
+    --warning-foreground: oklch(1 0 0);
     --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(1 0 0);
     --border: oklch(0.92 0.004 286.32);
     --input: oklch(0.92 0.004 286.32);
     --ring: oklch(0.705 0.015 286.067);
@@ -97,7 +126,12 @@
     --muted-foreground: oklch(0.705 0.015 286.067);
     --accent: oklch(0.274 0.006 286.033);
     --accent-foreground: oklch(0.985 0 0);
+    --success: oklch(0.9234 0.031 137.82);
+    --success-foreground: oklch(0.4564 0.126 143.74);
+    --warning: oklch(0.769 0.188 70.08);
+    --warning-foreground: oklch(1 0 0);
     --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(1 0 0);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.552 0.016 285.938);
@@ -108,7 +142,7 @@
     --chart-5: oklch(0.274 0.006 286.033);
     --sidebar: oklch(0.21 0.006 285.885);
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary: oklch(0.92 0.004 286.32);
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.274 0.006 286.033);
     --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -119,11 +153,20 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
-    @apply bg-background text-foreground;
-    }
-  html {
-    @apply font-sans;
-    }
+    @apply bg-background text-foreground antialiased;
+  }
+  svg {
+    stroke-width: 1;
+  }
+}
+
+html {
+  font-family: 'UncutSans', sans-serif;
+}
+
+/* Outside any layer so it wins over Tailwind utilities */
+html:not(.dark) .bg-background {
+  background: linear-gradient(180deg, #EBECEF 0%, #E3E5EA 100%) !important;
 }
