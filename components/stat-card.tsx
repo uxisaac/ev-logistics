@@ -25,14 +25,15 @@ function useCountUp(target: number, duration = 1000) {
 
 interface StatCardProps {
   label: string
-  value: number
+  value: number | string
   note: string
   icon: ReactNode
   critical?: boolean
 }
 
 export function StatCard({ label, value, note, icon, critical }: StatCardProps) {
-  const count = useCountUp(value)
+  const count = useCountUp(typeof value === 'number' ? value : 0)
+  const display = typeof value === 'number' ? count : value
 
   return (
     <div className="flex flex-1 min-w-0 flex-col gap-3 overflow-hidden rounded-3xl border bg-card p-4">
@@ -45,7 +46,7 @@ export function StatCard({ label, value, note, icon, critical }: StatCardProps) 
             'font-mono text-3xl leading-none tabular-nums',
             critical ? 'text-destructive' : 'text-card-foreground',
           )}>
-            {count}
+            {display}
           </p>
         </div>
         <div className="flex shrink-0 items-center rounded-full border-[0.5px] border-border p-2.5 text-card-foreground">

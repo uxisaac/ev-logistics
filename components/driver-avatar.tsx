@@ -25,11 +25,11 @@ function colorFor(name: string) {
 
 interface DriverAvatarProps {
   name: string
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export function DriverAvatar({ name, size = 'sm' }: DriverAvatarProps) {
-  const dim = size === 'sm' ? 'h-6 w-6 text-xs' : 'h-9 w-9 text-sm'
+  const dim = size === 'sm' ? 'h-6 w-6 text-xs' : size === 'md' ? 'h-9 w-9 text-sm' : 'h-12 w-12 text-base'
   return (
     <div className={`${dim} ${colorFor(name)} flex shrink-0 items-center justify-center rounded-full font-mono font-medium`}>
       {initials(name)}
