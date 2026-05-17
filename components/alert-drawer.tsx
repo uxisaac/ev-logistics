@@ -34,6 +34,8 @@ interface AlertDrawerProps {
   onClose: () => void
   initialTab?: 'overview' | 'location' | 'chat'
   onAssigned?: (alertId: string) => void
+  showBackdrop?: boolean
+  showLocationTab?: boolean
 }
 
 const SHIFT_HOURS = ['5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM']
@@ -150,7 +152,7 @@ function InfoCard({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function AlertDrawer({ alert, onClose, initialTab = 'overview', onAssigned }: AlertDrawerProps) {
+export function AlertDrawer({ alert, onClose, initialTab = 'overview', onAssigned, showBackdrop = true, showLocationTab = true }: AlertDrawerProps) {
   const open = alert !== null
   const [assignState, setAssignState] = useState<'idle' | 'loading' | 'confirmed'>('idle')
   const [activeTab, setActiveTab] = useState<'overview' | 'location' | 'chat'>('overview')
@@ -220,13 +222,15 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview', onAssigne
   return (
     <>
       {/* Backdrop */}
-      <div
-        onClick={onClose}
-        className={cn(
-          'fixed inset-0 z-40 bg-foreground/20 dark:bg-black/60 transition-opacity duration-300',
-          open ? 'opacity-100' : 'pointer-events-none opacity-0',
-        )}
-      />
+      {showBackdrop && (
+        <div
+          onClick={onClose}
+          className={cn(
+            'fixed inset-0 z-40 bg-foreground/20 dark:bg-black/60 transition-opacity duration-300',
+            open ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+        />
+      )}
 
       {/* Panel */}
       <aside
@@ -267,7 +271,7 @@ export function AlertDrawer({ alert, onClose, initialTab = 'overview', onAssigne
             {/* Segment control */}
             <div className="shrink-0 border-b px-6 py-3">
               <div className="flex gap-1 rounded-full bg-muted p-1 w-full">
-                {(['overview', 'location', 'chat'] as const).map((tab) => (
+                {(['overview', 'location', 'chat'] as const).filter(tab => tab !== 'location' || showLocationTab).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}

@@ -1,5 +1,6 @@
 export type CameraStatus = 'active' | 'offline' | 'alert'
 export type LockStatus = 'locked' | 'unlocked'
+export type VehicleStatus = 'in-service' | 'charging' | 'charged'
 
 export interface Vehicle {
   id: string
@@ -16,6 +17,7 @@ export interface Vehicle {
   statusLine1: string
   statusLine2: string
   inService: boolean
+  vehicleStatus: VehicleStatus
   coordinates: [number, number]
 }
 
@@ -35,6 +37,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: 'In Tesla Service',
     statusLine2: 'Orinda',
     inService: true,
+    vehicleStatus: 'in-service',
     coordinates: [-122.225, 37.883],
   },
   {
@@ -52,6 +55,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: '3505 20th Street',
     statusLine2: 'San Francisco',
     inService: false,
+    vehicleStatus: 'in-service',
     coordinates: [-122.419, 37.759],
   },
   {
@@ -69,6 +73,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: 'Golden Gate Bridge',
     statusLine2: 'San Francisco',
     inService: false,
+    vehicleStatus: 'in-service',
     coordinates: [-122.478, 37.819],
   },
   {
@@ -86,6 +91,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: '3500 Callan Boulevard',
     statusLine2: 'Daly City',
     inService: false,
+    vehicleStatus: 'charged',
     coordinates: [-122.469, 37.679],
   },
   {
@@ -103,6 +109,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: '255 King Street',
     statusLine2: 'San Francisco',
     inService: false,
+    vehicleStatus: 'charging',
     coordinates: [-122.395, 37.778],
   },
   {
@@ -120,6 +127,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: '1 Christmas Tree Point Road',
     statusLine2: 'San Francisco',
     inService: false,
+    vehicleStatus: 'charging',
     coordinates: [-122.453, 37.743],
   },
   {
@@ -137,6 +145,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: '1202 Mariner Drive',
     statusLine2: 'San Francisco',
     inService: false,
+    vehicleStatus: 'charging',
     coordinates: [-122.398, 37.789],
   },
   {
@@ -154,6 +163,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: '1312 Encinal Avenue',
     statusLine2: 'Alameda',
     inService: false,
+    vehicleStatus: 'in-service',
     coordinates: [-122.241, 37.765],
   },
   {
@@ -171,6 +181,7 @@ export const vehicles: Vehicle[] = [
     statusLine1: '2402 Balboa Street',
     statusLine2: 'San Francisco',
     inService: false,
+    vehicleStatus: 'charged',
     coordinates: [-122.485, 37.776],
   },
 ]

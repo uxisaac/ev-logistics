@@ -39,6 +39,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { ChargingYardMap } from '@/components/charging-yard-map'
+import { SegmentTabs } from '@/components/segment-tabs'
 import { StationUsageChart } from '@/components/station-usage-chart'
 import { RecentActivity } from '@/components/recent-activity'
 
@@ -309,25 +310,17 @@ export default function ChargingPage() {
         </div>
 
         {/* Station segment control */}
-        <div className="mb-4 inline-flex items-center gap-1 rounded-xl bg-muted p-1">
-          {[
-            { id: 'lot-a',  label: 'Depot North · Lot A' },
-            { id: 'lot-b',  label: 'Depot South · Lot B' },
-            { id: 'lot-c',  label: 'West Hub · Lot C' },
-          ].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setActiveStation(id)}
-              className={cn(
-                'rounded-lg px-4 py-1.5 font-mono text-xs uppercase tracking-widest transition-colors',
-                activeStation === id
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="mb-4">
+          <SegmentTabs
+            tabs={[
+              { label: 'Depot North · Lot A', value: 'lot-a' },
+              { label: 'Depot South · Lot B', value: 'lot-b' },
+              { label: 'West Hub · Lot C',    value: 'lot-c' },
+            ]}
+            active={activeStation}
+            onChange={setActiveStation}
+            className="w-auto"
+          />
         </div>
 
         <div className="mb-4 grid grid-cols-4 gap-4">
